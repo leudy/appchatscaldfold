@@ -15,12 +15,8 @@ io.on('connection', (client) => {
         client.join(user.sala);
         let personas = ManageUsers.agregarPersona(client.id, user.name);
         let msj = crearmensaje('Admin', `${ user.name } entro el chat`);
-
         client.broadcast.to(user.sala).emit('listarPersonas', msj);
-
         callback(JSON.stringify(personas));
-
-
     });
 
     // borrar persona registrada via socket
