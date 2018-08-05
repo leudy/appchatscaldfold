@@ -1,18 +1,26 @@
 var socket = io();
-var params = new URLSearchParams(window.location.search)
-if (!params.has('name') || !params.has('sala')) {
-    window.location = 'index.html';
-    throw new Error('el nombre y sala son necesario')
 
+var params = new URLSearchParams(window.location.search);
+
+if (!params.has('nombre') || !params.has('sala')) {
+    window.location = 'index.html';
+    throw new Error('El nombre y sala son necesarios');
 }
 
-socket.on('connect', function() {
-    // client 
-    // var user = { name: params.get('name'), sala: params.get('sala') }
-    socket.emit('entrarchat', { name: params.get('name'), sala: params.get('sala') }, function(res) {
-        console.log(res)
-    });
+var usuario = {
+    nombre: params.get('nombre'),
+    sala: params.get('sala')
+};
 
+
+
+socket.on('connect', function() {
+    console.log('Conectado al servidor');
+
+    socket.emit('entrarChat', usuario, function(resp) {
+
+        renderizarUsuarios(resp);
+    });
 
 });
 
@@ -22,31 +30,41 @@ socket.on('disconnect', function() {
     console.log('Perdimos conexión con el servidor');
 
 });
-socket.on('crearMensaje', function(msg) {
-    console.log('Servidor :=>', msg)
-});
-socket.on('listarPersonas', function(msg) {
-    console.log('Servidor :', msg)
-});
-socket.on('receiptmsj', function(msj) {
-    console.log(msj)
-});
+
 
 // Enviar información
-// socket.emit('enviarMensaje', {
-//     user: 'Fernando',
-//     msj: 'Hola Mundo'
+// socket.emit('crearMensaje', {
+//     nombre: 'Fernando',
+//     mensaje: 'Hola Mundo'
 // }, function(resp) {
 //     console.log('respuesta server: ', resp);
 // });
 
 // Escuchar información
-socket.on('enviarMensaje', function(mensaje) {
+socket.on('crearMensaje', function(mensaje) {
 
-    console.log('Servidor:', mensaje);
-
+    renderizarmensaje(mensaje, false);
+    scrollBottom();
+    //  console.log('Recibiendo desde el otro chat user', mensaje);
 });
 
-socket.on('PrivateMsj', function(msj) {
-    console.log(msj);
+// Escuchar cambios de usuarios
+// cuando un usuario entra o sale del chat
+socket.on('listarPersonas', function(resp) {
+    // var users = JSON.parse(resp);
+
+    renderizarUsuarios(resp);
+
+});
+// extra method
+socket.on('receiptmsj', function(msj) {
+    renderizarmensaje(msj, false);
+    scrollBottom();
+});
+
+// Mensajes privados
+socket.on('mensajePrivado', function(mensaje) {
+
+    console.log('Mensaje Privado:', mensaje);
+
 });
